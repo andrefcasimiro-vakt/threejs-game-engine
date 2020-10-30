@@ -1,3 +1,3 @@
-import Scene_Prototype from './scenes/00_prototype'
+import Editor from './editor/editor'
 
-new Scene_Prototype()
+new Editor()
