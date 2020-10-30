@@ -5,6 +5,7 @@ import Scene from "../core/scene";
 import { PerspectiveCamera, BoxGeometry, Mesh, MeshNormalMaterial, Color } from "three";
 import OrbitControl from "../controls/orbit-control";
 import EditorToolbar from "./editor-toolbar";
+import EditorGrid from "./editor-grid";
 
 export default class Editor implements Component {
 
@@ -12,9 +13,10 @@ export default class Editor implements Component {
   private _camera: PerspectiveCamera
   private _controls: OrbitControl
   private _requestAnimationFrameId: number
-  private _brick: Mesh
 
   private _editorToolbar: EditorToolbar
+
+  private _editorGrid: EditorGrid
 
   constructor() {
     this.start()
@@ -28,18 +30,16 @@ export default class Editor implements Component {
     this._camera.position.set(0, 200, 200)
     this._camera.lookAt(0, 0, 0)
 
-    this._brick = new Mesh(new BoxGeometry(20, 20, 20))
-    this._brick.material = new MeshNormalMaterial()
-    this._scene.get().add(this._brick)
     this._scene.getRenderer().setClearColor(new Color("rgba(0, 0, 0,"))
 
-    this._editorToolbar = new EditorToolbar(this._scene)
+    // Instantiate editor toolsets
+    this._editorGrid = new EditorGrid(this._scene)
+    this._editorToolbar = new EditorToolbar(this._scene, this._editorGrid)
 
     this.update()
   }
 
   update = () => {
-    this._brick.rotateY(0.05)
     this._requestAnimationFrameId = window.requestAnimationFrame(this.update)
   }
 
