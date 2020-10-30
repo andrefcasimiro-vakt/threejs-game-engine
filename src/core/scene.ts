@@ -38,14 +38,18 @@ export default class Scene implements Component<ThreeJSScene> {
   }
 
   get = () => {
-    return this._instance;
+    return this._instance
   }
 
   getRenderer = () => {
-    return this._renderer;
+    return this._renderer
   }
 
   getName = () => {
-    return this._sceneName;
+    return this._sceneName
+  }
+
+  setName = (sceneName: string) => {
+    this._sceneName = sceneName
   }
 }

@@ -19,8 +19,8 @@ export default class EditorToolbar implements Component {
       style: `
         display: flex;
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 10px;
+        left: 10px;
       `,
       onChange: this.handleSceneNameChange
     })
@@ -39,6 +39,6 @@ export default class EditorToolbar implements Component {
   }
 
   handleSceneNameChange = (event: ChangeEvent) => {
-    
+    this._editorScene.setName(event.target.value)
   }
 }

@@ -40,15 +40,10 @@ export default class Editor implements Component {
 
   update = () => {
     this._brick.rotateY(0.05)
-
     this._requestAnimationFrameId = window.requestAnimationFrame(this.update)
   }
 
   destroy = () => {
     window.cancelAnimationFrame(this._requestAnimationFrameId)
-  }
-
-  handleSceneNameChange = (event: ChangeEvent) => {
-    
   }
 }
