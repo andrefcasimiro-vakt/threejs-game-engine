@@ -45,7 +45,7 @@ export default class MouseRaycast implements Component {
     this._raycaster.setFromCamera(this._mouse, this._camera)
 
     const intersects = this._raycaster.intersectObjects(this._scene.get().children, false)
-
+    
     if (this._onRaycast) {
       this._onRaycast(intersects)
     }

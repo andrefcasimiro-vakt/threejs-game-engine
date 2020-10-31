@@ -34,7 +34,6 @@ export default class EditorGrid implements Component {
   }
 
   destroy = () => {
-    // Cleanup
     this.cleanup()
 
     window.cancelAnimationFrame(this._requestAnimationFrameId)
@@ -47,6 +46,11 @@ export default class EditorGrid implements Component {
   getWidth = () => {
     return this._width
   }
+
+  getDepth = () => {
+    return this._depth
+  }
+
   setWidth = (width: number) => {
     this._width = width
     this._lineWidth = width
@@ -54,14 +58,19 @@ export default class EditorGrid implements Component {
     this.generateGrid()
   }
 
-  getDepth = () => {
-    return this._depth
-  }
   setDepth = (depth: number) => {
     this._depth = depth
     this._lineDepth = depth
 
     this.generateGrid()
+  }
+
+  cleanup = () => {
+    this._grid.forEach(object => {
+      this._scene.get().remove(object)
+    })
+
+    this._grid = []
   }
 
   generateUnit = ({ x, y, z}: { x: number, y: number, z: number }) => {
@@ -75,15 +84,6 @@ export default class EditorGrid implements Component {
     unit.position.z = z
 
     return unit
-  }
-
-  cleanup = () => {
-    console.log('cleanup')
-    this._grid.forEach(object => {
-      this._scene.get().remove(object)
-    })
-
-    this._grid = []
   }
 
   generateGrid = () => {
@@ -110,9 +110,11 @@ export default class EditorGrid implements Component {
     }
 
     if (intersections && intersections.length) {
-      intersections.forEach((intersection: any) => {
-        intersection.object.material.color.set('red')
-      })
+      // Pick the first one
+
+      // @ts-ignore
+      intersections[0].object.material.color.set('red')
+
     }
       
     this._previousIntersections = intersections

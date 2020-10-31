@@ -1,4 +1,4 @@
-import { WebGLRenderer, Camera, Scene as ThreeJSScene } from 'three'
+import { WebGLRenderer, Camera, Scene as ThreeJSScene, PerspectiveCamera } from 'three'
 import Component from './component';
 
 export default class Scene implements Component<ThreeJSScene> {
@@ -9,7 +9,7 @@ export default class Scene implements Component<ThreeJSScene> {
 
   constructor(
     private _sceneName: string,
-     private _camera: Camera,
+     private _camera: PerspectiveCamera,
   ) {
     this._sceneName = _sceneName
     this._camera = _camera
@@ -24,16 +24,26 @@ export default class Scene implements Component<ThreeJSScene> {
     this._renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(this._renderer.domElement)
 
+    window.addEventListener('resize', this.onResize, false)
+
     this.update()
   }
 
   update = () => {
+    this._camera.aspect = window.innerWidth / window.innerHeight
+    this._camera.updateProjectionMatrix()
     this._renderer.render(this.get(), this._camera)
 
     this._requestAnimationFrameId = window.requestAnimationFrame(this.update)
   }
 
+  onResize = () => {
+    this._renderer.setSize(window.innerWidth, window.innerHeight)
+  }
+
   destroy = () => {
+    window.removeEventListener('resize', this.onResize, false)
+
     window.cancelAnimationFrame(this._requestAnimationFrameId)
   }
 

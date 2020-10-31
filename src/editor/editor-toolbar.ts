@@ -5,11 +5,7 @@ import Scene from "../core/scene";
 import EditorGrid from "./editor-grid";
 
 export default class EditorToolbar implements Component {
-
-  private _sceneNameInput: Input
-  private _gridWidthInput: Input
-  private _gridDepthInput: Input
-
+  private _inputs: Input[]
   private _requestAnimationFrameId: number
 
   constructor(
@@ -23,20 +19,21 @@ export default class EditorToolbar implements Component {
   }
 
   start = () => {
-    this.renderSceneNameInput()
-
-    this.renderGridInputs()
+    this.renderInputs()
   }
 
   destroy = () => {
-    // Cleanup
-    this._sceneNameInput.destroy()
+    this._inputs.forEach(input => {
+      input.destroy()
+    })
 
     window.cancelAnimationFrame(this._requestAnimationFrameId)
   }
 
-  renderSceneNameInput = () => {
-    this._sceneNameInput = new Input({
+
+  renderInputs = () => {
+    this._inputs = [
+      new Input({
       name: 'sceneName',
       placeholder: 'Insert a scene name...',
       style: `
@@ -48,13 +45,11 @@ export default class EditorToolbar implements Component {
       `,
       onChange: (event) => {
         this._editorScene.setName(event.target.value)
-      }
-    })
-  }
-
-  renderGridInputs = () => {
-    this._gridWidthInput = new Input({
+      },
+    }),
+    new Input({
       name: 'gridWidth',
+      type: 'number',
       placeholder: 'Grid width...',
       style: `
         display: flex;
@@ -67,10 +62,10 @@ export default class EditorToolbar implements Component {
       onChange: (event) => {
         this._editorGrid.setWidth(Number(event.target.value))
       },
-    })
-
-    this._gridDepthInput = new Input({
+    }),
+    new Input({
       name: 'gridDepth',
+      type: 'number',
       placeholder: 'Grid depth...',
       style: `
         display: flex;
@@ -83,6 +78,7 @@ export default class EditorToolbar implements Component {
       onChange: (event) => {
         this._editorGrid.setDepth(Number(event.target.value))
       },
-    })
+    }),
+    ]
   }
 }
