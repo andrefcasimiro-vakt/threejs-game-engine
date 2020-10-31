@@ -2,7 +2,10 @@ import Component from "../core/component";
 import Input from '../ui/input'
 import { ChangeEvent } from "../typescript/typings";
 import Scene from "../core/scene";
-import { GridHelper, Object3D, LineBasicMaterial, Color, Geometry, Vector3, Line, LinePieces } from "three";
+import { GridHelper, Object3D, LineBasicMaterial, Color, Geometry, Vector3, Line, LinePieces, Intersection, Mesh, BoxGeometry, Material, MeshBasicMaterial } from "three";
+import MouseRaycast from "../controls/mouse-raycast";
+
+const DEFAULT_COLOR = 'rgba(50, 100, 255, 0.1)'
 
 export default class EditorGrid implements Component {
 
@@ -10,10 +13,10 @@ export default class EditorGrid implements Component {
   private _depth: number = 10
   private _lineWidth: number = 10
   private _lineDepth: number = 10
-
+  private _grid: Object3D[] = []
+  private _mouseRaycast: MouseRaycast
+  private _previousIntersections: Intersection[]
   private _requestAnimationFrameId: number
-
-  private _grid: Object3D
 
   constructor(
     private _scene: Scene,
@@ -25,12 +28,14 @@ export default class EditorGrid implements Component {
   }
 
   start = () => {
+    this._mouseRaycast = new MouseRaycast(this._scene, this.onRaycast)
+
     this.generateGrid()
   }
 
   destroy = () => {
     // Cleanup
-    this._scene.get().remove(this._grid)
+    this.cleanup()
 
     window.cancelAnimationFrame(this._requestAnimationFrameId)
   }
@@ -59,37 +64,57 @@ export default class EditorGrid implements Component {
     this.generateGrid()
   }
 
-  generateGrid = () => {
-    if (this._grid) {
-      console.info(`Removed previous grid`)
-      this._scene.get().remove(this._grid)
-    }
+  generateUnit = ({ x, y, z}: { x: number, y: number, z: number }) => {
+    const unit = new Mesh(new BoxGeometry(1, 1, 1))
+    // @ts-ignore
+    unit.material.color.set(DEFAULT_COLOR)
+    // @ts-ignore
+    // unit.material.wireframe = true
+    unit.position.x = x
+    unit.position.y = y
+    unit.position.z = z
 
-    const material = new LineBasicMaterial({
-      color: this._gridColor,
+    return unit
+  }
+
+  cleanup = () => {
+    console.log('cleanup')
+    this._grid.forEach(object => {
+      this._scene.get().remove(object)
     })
 
-    const gridObject = new Object3D(),
-    gridGeo = new Geometry(),
-    stepw = 2 * this._width / this._lineWidth,
-    stepd = 2 * this._depth / this._lineDepth
+    this._grid = []
+  }
 
-    // width 
-    for (let i = -this._width; i < this._width; i += stepw) {
-      gridGeo.vertices.push(new Vector3(i, 0, -this._depth))
-      gridGeo.vertices.push(new Vector3(i, 0, this._depth))
+  generateGrid = () => {
+    if (this._grid.length) {
+      this.cleanup()
     }
 
-    // depth 
-    for (let i = -this._depth; i < this._depth; i += stepd) {
-      gridGeo.vertices.push(new Vector3(-this._width, 0, i))
-      gridGeo.vertices.push(new Vector3(this._width, 0, i))
+    for (let i = -this._width; i < this._width + 1; i++) {
+      for (let j = -this._depth; j < this._depth + 1; j++) {
+        this._grid.push(this.generateUnit({ x: i, y: 0, z: j }))
+      }
     }
 
-    const line = new Line(gridGeo, material, LinePieces)
-    gridObject.add(line)
+    this._grid.forEach(object => {
+      this._scene.get().add(object)
+    })
+  }
 
-    this._grid = gridObject
-    this._scene.get().add(this._grid)
-  } 
+  onRaycast = (intersections: Intersection[]) => {
+    if (this._previousIntersections && this._previousIntersections.length) {
+      this._previousIntersections.forEach((intersection: any) => {
+        intersection.object.material.color.set(DEFAULT_COLOR)
+      })
+    }
+
+    if (intersections && intersections.length) {
+      intersections.forEach((intersection: any) => {
+        intersection.object.material.color.set('red')
+      })
+    }
+      
+    this._previousIntersections = intersections
+  }
 }
