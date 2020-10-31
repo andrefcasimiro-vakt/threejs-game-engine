@@ -20,6 +20,5 @@ module.exports = {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
     // To build for github, uncomment this line:
-    publicPath: '/dist/',
   }
 };
