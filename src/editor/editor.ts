@@ -6,6 +6,7 @@ import { PerspectiveCamera, BoxGeometry, Mesh, MeshNormalMaterial, Color } from 
 import OrbitControl from "../controls/orbit-control";
 import EditorToolbar from "./editor-toolbar";
 import EditorGrid from "./editor-grid";
+import EntitySelection from "./entity-selection";
 
 export default class Editor implements Component {
 
@@ -15,8 +16,8 @@ export default class Editor implements Component {
   private _requestAnimationFrameId: number
 
   private _editorToolbar: EditorToolbar
-
   private _editorGrid: EditorGrid
+  private _entitySelection: EntitySelection
 
   constructor() {
     this.start()
@@ -36,6 +37,8 @@ export default class Editor implements Component {
     this._editorGrid = new EditorGrid(this._scene)
     this._editorToolbar = new EditorToolbar(this._scene, this._editorGrid)
 
+    this._entitySelection = new EntitySelection(false)
+
     this.update()
   }
 
@@ -45,5 +48,9 @@ export default class Editor implements Component {
 
   destroy = () => {
     window.cancelAnimationFrame(this._requestAnimationFrameId)
+
+    this._editorGrid.destroy()
+    this._editorToolbar.destroy()
+    this._entitySelection.destroy()
   }
 }

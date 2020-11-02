@@ -4,8 +4,22 @@ import { ChangeEvent } from "../typescript/typings";
 import Scene from "../core/scene";
 import { GridHelper, Object3D, LineBasicMaterial, Color, Geometry, Vector3, Line, LinePieces, Intersection, Mesh, BoxGeometry, Material, MeshBasicMaterial } from "three";
 import MouseRaycast from "../controls/mouse-raycast";
+import { TileEntity, TileType } from "./editor-tile";
+import {generate as generateShortId} from 'shortid'
 
 const DEFAULT_COLOR = 'rgba(50, 100, 255, 0.1)'
+const HIGHLIGHTED_COLOR = 'rgba(200, 50, 100, 0.5)'
+
+export interface Entity {
+  uuid: string
+  mesh: Object3D
+}
+
+export interface GridEntity {
+  floor?: Entity
+  object?: Entity
+  event?: Entity
+}
 
 export default class EditorGrid implements Component {
 
@@ -13,9 +27,11 @@ export default class EditorGrid implements Component {
   private _depth: number = 10
   private _lineWidth: number = 10
   private _lineDepth: number = 10
-  private _grid: Object3D[] = []
+
+  private _grid: GridEntity[] = []
+
   private _mouseRaycast: MouseRaycast
-  private _previousIntersections: Intersection[]
+  private _previousIntersection: Intersection
   private _requestAnimationFrameId: number
 
   constructor(
@@ -34,7 +50,7 @@ export default class EditorGrid implements Component {
   }
 
   destroy = () => {
-    this.cleanup()
+    this.undraw()
 
     window.cancelAnimationFrame(this._requestAnimationFrameId)
   }
@@ -65,9 +81,45 @@ export default class EditorGrid implements Component {
     this.generateGrid()
   }
 
-  cleanup = () => {
-    this._grid.forEach(object => {
-      this._scene.get().remove(object)
+  draw = () => {
+    this._grid.forEach(unit => {
+      const scene = this._scene.get()
+
+      const floorMesh = unit.floor && unit.floor.mesh
+      if (floorMesh) {
+        scene.add(floorMesh)
+      }
+
+      const objectMesh = unit.object && unit.object.mesh
+      if (objectMesh) {
+        scene.add(objectMesh)
+      }
+
+      const eventMesh = unit.event && unit.event.mesh
+      if (eventMesh) {
+        scene.add(eventMesh)
+      }
+    })
+  }
+
+  undraw = () => {
+    this._grid.forEach(unit => {
+      const scene = this._scene.get()
+
+      const floorMesh = unit.floor && unit.floor.mesh
+      if (floorMesh) {
+        scene.remove(floorMesh)
+      }
+
+      const objectMesh = unit.object && unit.object.mesh
+      if (objectMesh) {
+        scene.remove(objectMesh)
+      }
+
+      const eventMesh = unit.event && unit.event.mesh
+      if (eventMesh) {
+        scene.remove(eventMesh)
+      }
     })
 
     this._grid = []
@@ -88,35 +140,36 @@ export default class EditorGrid implements Component {
 
   generateGrid = () => {
     if (this._grid.length) {
-      this.cleanup()
+      this.undraw()
     }
 
     for (let i = -this._width; i < this._width + 1; i++) {
       for (let j = -this._depth; j < this._depth + 1; j++) {
-        this._grid.push(this.generateUnit({ x: i, y: 0, z: j }))
+        this._grid.push({
+          floor: {
+            uuid: generateShortId(),
+            mesh: this.generateUnit({ x: i, y: 0, z: j })
+          },
+        })
       }
     }
 
-    this._grid.forEach(object => {
-      this._scene.get().add(object)
-    })
+    this.draw()
   }
 
-  onRaycast = (intersections: Intersection[]) => {
-    if (this._previousIntersections && this._previousIntersections.length) {
-      this._previousIntersections.forEach((intersection: any) => {
-        intersection.object.material.color.set(DEFAULT_COLOR)
-      })
-    }
+  onRaycast = (intersections: Intersection[] = []) => {
+    const currentIntersection = intersections[0]
 
-    if (intersections && intersections.length) {
-      // Pick the first one
-
+    if (this._previousIntersection) {
       // @ts-ignore
-      intersections[0].object.material.color.set('red')
-
+      this._previousIntersection.object.material.color.set(DEFAULT_COLOR)
     }
+
+    if (currentIntersection) {
+      // @ts-ignore
+      currentIntersection.object.material.color.set(HIGHLIGHTED_COLOR)
       
-    this._previousIntersections = intersections
+      this._previousIntersection = currentIntersection
+    }
   }
 }
